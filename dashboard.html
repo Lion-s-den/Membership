@@ -4,6 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Student LMS - Dashboard</title>
+  <!-- Load Configuration First -->
+<script src="config.js"></script>
+
+<!-- Load Supabase Library -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+  // SUPABASE_URL and SUPABASE_ANON_KEY are now accessible from config.js
+  const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+</script>
   
   <!-- Supabase JS Client Library -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
