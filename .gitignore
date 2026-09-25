@@ -1,4 +1,6 @@
 # Ignore secret keys and passwords
 .env
 config.js
+.env
+config.js
 *.secret
