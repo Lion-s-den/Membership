@@ -1,1 +1,194 @@
-wedvyfcefvb8ycrgb7yv4rb7hyfcdcvuhbfr
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Student LMS - Dashboard</title>
+  
+  <!-- Supabase JS Client Library -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f6f8;
+      margin: 0;
+      padding: 0;
+      color: #333333;
+    }
+
+    /* Header Navigation */
+    header {
+      background-color: #ffffff;
+      padding: 15px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    header h1 {
+      margin: 0;
+      font-size: 20px;
+      color: #333333;
+    }
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    .user-email {
+      font-size: 14px;
+      color: #555555;
+    }
+    .logout-btn {
+      padding: 8px 16px;
+      background-color: #e53e3e;
+      border: none;
+      border-radius: 4px;
+      color: white;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .logout-btn:hover {
+      background-color: #c53030;
+    }
+
+    /* Container & Content Layout */
+    .container {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+    .welcome-card {
+      background: #ffffff;
+      padding: 25px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      margin-bottom: 30px;
+    }
+    .welcome-card h2 {
+      margin-top: 0;
+      color: #3ecf8e; /* Supabase Accent Green */
+    }
+
+    /* Course Cards */
+    .courses-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+    }
+    .course-card {
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .course-card h3 {
+      margin-top: 0;
+      font-size: 18px;
+    }
+    .course-card p {
+      font-size: 14px;
+      color: #666666;
+      line-height: 1.5;
+    }
+    .action-btn {
+      display: inline-block;
+      text-align: center;
+      padding: 10px;
+      background-color: #3ecf8e;
+      border: none;
+      border-radius: 4px;
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 14px;
+      margin-top: 15px;
+      cursor: pointer;
+    }
+    .action-btn:hover {
+      background-color: #34b27b;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header>
+    <h1>Student Portal</h1>
+    <div class="user-info">
+      <span class="user-email" id="userEmail">Loading user...</span>
+      <button class="logout-btn" id="logoutBtn">Log Out</button>
+    </div>
+  </header>
+
+  <!-- Dashboard Main Content -->
+  <div class="container">
+    <div class="welcome-card">
+      <h2>Welcome back to your LMS!</h2>
+      <p>Select a module below to view course materials, assignments, and tutorials.</p>
+    </div>
+
+    <!-- Course List Grid -->
+    <div class="courses-grid">
+      <div class="course-card">
+        <div>
+          <h3>Module 1: HTML & CSS Basics</h3>
+          <p>Learn structural tagging, semantic elements, and modern flexbox layouts.</p>
+        </div>
+        <a href="#" class="action-btn">View Module</a>
+      </div>
+
+      <div class="course-card">
+        <div>
+          <h3>Module 2: JavaScript Fundamentals</h3>
+          <p>Master variables, functions, async programming, and DOM manipulations.</p>
+        </div>
+        <a href="#" class="action-btn">View Module</a>
+      </div>
+
+      <div class="course-card">
+        <div>
+          <h3>Module 3: Supabase & Databases</h3>
+          <p>Understand user authentication, database queries, and Row Level Security.</p>
+        </div>
+        <a href="#" class="action-btn">View Module</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 1. Initialize Supabase
+    const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // 2. Authentication Guard: Verify active session
+    async function checkAuth() {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        // Redirect unauthorized user back to login page
+        window.location.href = 'index.html';
+      } else {
+        // Display authenticated user's email
+        document.getElementById('userEmail').innerText = session.user.email;
+      }
+    }
+
+    // Execute session check immediately on page load
+    checkAuth();
+
+    // 3. Handle Logout Action
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      await supabase.auth.signOut();
+      window.location.href = 'index.html';
+    });
+  </script>
+
+</body>
+</html>
