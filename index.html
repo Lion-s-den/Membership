@@ -1,1 +1,137 @@
-QWERYUIIHCQASCVUHVCaxciujhbvwsdcvoijnbwsdcvijbwsdcvkjnbedfvbuhbv
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Student LMS - Login</title>
+  
+  <!-- Supabase JS Client Library -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f6f8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .login-card {
+      background: #ffffff;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 360px;
+    }
+    h2 {
+      margin-top: 0;
+      color: #333333;
+      text-align: center;
+    }
+    .input-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 14px;
+      color: #555555;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background-color: #3ecf8e; /* Supabase Green */
+      border: none;
+      border-radius: 4px;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #34b27b;
+    }
+    #message {
+      margin-top: 15px;
+      font-size: 14px;
+      text-align: center;
+    }
+    .error {
+      color: #e53e3e;
+    }
+    .success {
+      color: #38a169;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-card">
+    <h2>Student Portal Login</h2>
+    <form id="loginForm">
+      <div class="input-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" placeholder="student@example.com" required />
+      </div>
+      <div class="input-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="••••••••" required />
+      </div>
+      <button type="submit" id="loginBtn">Log In</button>
+    </form>
+    <p id="message"></p>
+  </div>
+
+  <script>
+    // 1. Initialize Supabase
+    const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const form = document.getElementById('loginForm');
+    const message = document.getElementById('message');
+
+    // 2. Handle Login Submission
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      message.className = '';
+      message.innerText = 'Logging in...';
+
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      // Send login request to Supabase Auth
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password,
+      });
+
+      if (error) {
+        message.className = 'error';
+        message.innerText = error.message;
+      } else {
+        message.className = 'success';
+        message.innerText = 'Login successful! Redirecting...';
+        
+        // Redirect student to the dashboard
+        setTimeout(() => {
+          window.location.href = 'dashboard.html';
+        }, 1000);
+      }
+    });
+  </script>
+
+</body>
+</html>
