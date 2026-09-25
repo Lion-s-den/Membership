@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Course Module - Student LMS</title>
+  
+  <!-- Supabase JS Client Library -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f6f8;
+      margin: 0;
+      padding: 0;
+      color: #333333;
+    }
+
+    /* Top Navigation Header */
+    header {
+      background-color: #ffffff;
+      padding: 15px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    header h1 {
+      margin: 0;
+      font-size: 20px;
+    }
+    .back-btn {
+      color: #3ecf8e;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 14px;
+    }
+    .back-btn:hover {
+      text-decoration: underline;
+    }
+
+    /* Container & Card Layout */
+    .container {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+    .content-card {
+      background: #ffffff;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+    .module-badge {
+      display: inline-block;
+      background-color: #e6f4ea;
+      color: #3ecf8e;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+    h2 {
+      margin-top: 0;
+      color: #333333;
+    }
+    .lesson-body {
+      line-height: 1.6;
+      color: #555555;
+      margin-top: 20px;
+    }
+    .video-container {
+      position: relative;
+      padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+      height: 0;
+      overflow: hidden;
+      margin-top: 20px;
+      border-radius: 8px;
+      background-color: #000000;
+    }
+    .video-container iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <h1>Student Portal</h1>
+    <a href="dashboard.html" class="back-btn">← Back to Dashboard</a>
+  </header>
+
+  <!-- Dynamic Content Area -->
+  <div class="container">
+    <div class="content-card">
+      <span class="module-badge" id="moduleTag">Course Module</span>
+      <h2 id="courseTitle">Loading Lesson...</h2>
+      
+      <div id="courseContent" class="lesson-body">
+        <p>Fetching content...</p>
+      </div>
+
+      <!-- Optional Video Embed Area -->
+      <div class="video-container" id="videoBox" style="display: none;">
+        <iframe id="videoPlayer" src="" allowfullscreen></iframe>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 1. Initialize Supabase
+    const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // 2. Authentication Guard
+    async function checkAuth() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        window.location.href = 'index.html';
+      }
+    }
+    checkAuth();
+
+    // 3. Course Content Object (Local Database)
+    const coursesData = {
+      'html-basics': {
+        title: 'Module 1: HTML & CSS Basics',
+        tag: 'Frontend',
+        content: '<p>Welcome to Module 1! In this module, you will learn how to build structure with standard HTML5 elements and style pages using CSS selectors.</p><p>Key Topics Covered:</p><ul><li>Document structure (&lt;head&gt;, &lt;body&gt;)</li><li>Flexbox and Responsive Layouts</li><li>Styling forms and card elements</li></ul>',
+        videoUrl: 'https://www.youtube.com/embed/mU6anWqZJcc'
+      },
+      'js-basics': {
+        title: 'Module 2: JavaScript Fundamentals',
+        tag: 'Programming',
+        content: '<p>Welcome to Module 2! JavaScript makes static websites dynamic and interactive.</p><p>Key Topics Covered:</p><ul><li>Variables (const, let)</li><li>Functions and Event Listeners</li><li>Fetching external APIs and manipulating the DOM</li></ul>',
+        videoUrl: 'https://www.youtube.com/embed/hdI2bqOjy3c'
+      },
+      'supabase-basics': {
+        title: 'Module 3: Supabase & Databases',
+        tag: 'Backend',
+        content: '<p>Welcome to Module 3! Supabase provides user authentication, PostgreSQL database management, and Row Level Security.</p><p>Key Topics Covered:</p><ul><li>Setting up Supabase auth handlers</li><li>Querying data with JavaScript</li><li>Protecting sensitive rows with RLS</li></ul>',
+        videoUrl: ''
+      }
+    };
+
+    // 4. Read the URL Parameter ('id')
+    const urlParams = new URLSearchParams(window.location.search);
+    const courseId = urlParams.get('id');
+
+    // 5. Load the corresponding lesson content
+    if (courseId && coursesData[courseId]) {
+      const course = coursesData[courseId];
+      
+      document.getElementById('courseTitle').innerText = course.title;
+      document.getElementById('moduleTag').innerText = course.tag;
+      document.getElementById('courseContent').innerHTML = course.content;
+
+      if (course.videoUrl) {
+        document.getElementById('videoPlayer').src = course.videoUrl;
+        document.getElementById('videoBox').style.display = 'block';
+      }
+    } else {
+      document.getElementById('courseTitle').innerText = 'Course Not Found';
+      document.getElementById('courseContent').innerHTML = '<p>The selected module does not exist. Please return to the dashboard.</p>';
+    }
+  </script>
+
+</body>
+</html>
