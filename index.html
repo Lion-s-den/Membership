@@ -14,7 +14,12 @@
   <!-- 3. Initialize Supabase Client Globally -->
   <script>
     // SUPABASE_URL and SUPABASE_ANON_KEY are loaded from config.js
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    let supabaseClient = null;
+    if (typeof SUPABASE_URL !== 'undefined' && typeof SUPABASE_ANON_KEY !== 'undefined') {
+      supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    } else {
+      console.error("Supabase configuration missing in config.js");
+    }
   </script>
 
   <style>
@@ -71,6 +76,10 @@
     button:hover {
       background-color: #34b27b;
     }
+    button:disabled {
+      background-color: #a0aec0;
+      cursor: not-allowed;
+    }
     #message {
       margin-top: 15px;
       font-size: 14px;
@@ -105,15 +114,23 @@
   <script>
     const form = document.getElementById('loginForm');
     const message = document.getElementById('message');
+    const loginBtn = document.getElementById('loginBtn');
 
     // Handle Login Submission using the global supabaseClient
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
+
+      if (!supabaseClient) {
+        message.className = 'error';
+        message.innerText = 'Configuration error: Unable to connect to backend.';
+        return;
+      }
       
       message.className = '';
       message.innerText = 'Logging in...';
+      loginBtn.disabled = true;
 
-      const email = document.getElementById('email').value;
+      const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
 
       // Send login request to Supabase Auth
@@ -125,13 +142,14 @@
       if (error) {
         message.className = 'error';
         message.innerText = error.message;
+        loginBtn.disabled = false;
       } else {
         message.className = 'success';
         message.innerText = 'Login successful! Redirecting...';
         
         // Redirect student to the dashboard
         setTimeout(() => {
-          window.location.href = 'dashboard.html';
+          window.location.href = './dashboard.html';
         }, 1000);
       }
     });
