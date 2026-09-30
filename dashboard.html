@@ -4,20 +4,23 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Student LMS - Dashboard</title>
-  <!-- Load Configuration First -->
-<script src="config.js"></script>
 
-<!-- Load Supabase Library -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- 1. Load Configuration First -->
+  <script src="config.js"></script>
 
-<script>
-  // SUPABASE_URL and SUPABASE_ANON_KEY are now accessible from config.js
-  const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-</script>
-  
-  <!-- Supabase JS Client Library -->
+  <!-- 2. Load Supabase Library -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  
+
+  <!-- 3. Initialize Supabase Client Globally -->
+  <script>
+    let supabaseClient = null;
+    if (typeof SUPABASE_URL !== 'undefined' && typeof SUPABASE_ANON_KEY !== 'undefined') {
+      supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    } else {
+      console.error("Supabase configuration missing in config.js");
+    }
+  </script>
+
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -172,18 +175,19 @@
   </div>
 
   <script>
-    // 1. Initialize Supabase
-    const SUPABASE_URL = 'YOUR_SUPABASE_URL';
-    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    // 2. Authentication Guard: Verify active session
+    // 1. Authentication Guard: Verify active session using global supabaseClient
     async function checkAuth() {
-      const { data: { session } } = await supabase.auth.getSession();
+      if (!supabaseClient) {
+        console.error("Supabase client is not initialized.");
+        window.location.href = './index.html';
+        return;
+      }
+
+      const { data: { session }, error } = await supabaseClient.auth.getSession();
       
-      if (!session) {
+      if (error || !session) {
         // Redirect unauthorized user back to login page
-        window.location.href = 'index.html';
+        window.location.href = './index.html';
       } else {
         // Display authenticated user's email
         document.getElementById('userEmail').innerText = session.user.email;
@@ -193,10 +197,12 @@
     // Execute session check immediately on page load
     checkAuth();
 
-    // 3. Handle Logout Action
+    // 2. Handle Logout Action
     document.getElementById('logoutBtn').addEventListener('click', async () => {
-      await supabase.auth.signOut();
-      window.location.href = 'index.html';
+      if (supabaseClient) {
+        await supabaseClient.auth.signOut();
+      }
+      window.location.href = './index.html';
     });
   </script>
 
