@@ -1,64 +1,109 @@
+:root {
+  --font-family: Arial, sans-serif;
+  --bg-color: #f4f6f8;
+  --card-bg: #ffffff;
+  --text-primary: #333333;
+  --text-secondary: #555555;
+  --border-color: #cccccc;
+  --border-radius: 8px;
+  --input-radius: 4px;
+  --shadow-card: 0 4px 6px rgba(0, 0, 0, 0.1);
+  
+  /* Supabase Brand Accent Colors */
+  --primary-color: #3ecf8e;
+  --primary-hover: #34b27b;
+  --primary-focus-ring: rgba(62, 207, 142, 0.25);
+
+  /* Status Colors */
+  --error-color: #e53e3e;
+  --success-color: #38a169;
+}
+
+/* Global Reset */
+* {
+  box-sizing: border-box;
+}
+
 body {
-  font-family: Arial, sans-serif;
-  background-color: #f4f6f8;
+  font-family: var(--font-family);
+  background-color: var(--bg-color);
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  min-height: 100vh;
   margin: 0;
+  padding: 20px;
 }
 
+/* Login Card Container */
 .login-card {
-  background: #ffffff;
+  background: var(--card-bg);
   padding: 30px;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-card);
   width: 100%;
   max-width: 360px;
 }
 
 h2 {
   margin-top: 0;
-  color: #333333;
+  margin-bottom: 20px;
+  color: var(--text-primary);
   text-align: center;
 }
 
+/* Form Groups & Inputs */
 .input-group {
   margin-bottom: 15px;
 }
 
 label {
   display: block;
-  margin-bottom: 5px;
+  margin-bottom: 6px;
   font-size: 14px;
-  color: #555555;
+  color: var(--text-secondary);
 }
 
 input {
   width: 100%;
-  padding: 10px;
-  box-sizing: border-box;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--input-radius);
   font-size: 14px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  outline: none;
 }
 
+input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px var(--primary-focus-ring);
+}
+
+/* Action Buttons */
 button {
   width: 100%;
-  padding: 10px;
-  background-color: #3ecf8e;
+  padding: 11px;
+  background-color: var(--primary-color);
   border: none;
-  border-radius: 4px;
-  color: white;
+  border-radius: var(--input-radius);
+  color: #ffffff;
   font-size: 16px;
   font-weight: bold;
   cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-top: 5px;
 }
 
 button:hover {
-  background-color: #34b27b;
+  background-color: var(--primary-hover);
 }
 
+button:focus-visible {
+  outline: 2px solid var(--primary-hover);
+  outline-offset: 2px;
+}
+
+/* Feedback & Status Messages */
 #message {
   margin-top: 15px;
   font-size: 14px;
@@ -66,9 +111,9 @@ button:hover {
 }
 
 .error {
-  color: #e53e3e;
+  color: var(--error-color);
 }
 
 .success {
-  color: #38a169;
+  color: var(--success-color);
 }
