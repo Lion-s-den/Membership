@@ -1,6 +1,15 @@
-# Ignore secret keys and passwords
+# Environment & secrets
 .env
-config.js
-.env
-config.js
+.env.*
 *.secret
+
+# Local configuration (copy from config.example.js)
+config.js
+
+# OS & editor files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/
