@@ -1,1 +1,8 @@
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtsZ3BwcXlhb2JibGJrYnVicXVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyNDM2NjIsImV4cCI6MjEwNTgxOTY2Mn0.FZTGmmjF7RfLllAGMzdB3U6NsOEjLO8pfDmfKzlZ3Lg
+// config.example.js
+// ------------------------------
+// 1. Copy this file and rename it to config.js
+// 2. Fill in your real Supabase project values below
+// 3. Never commit config.js (it is already in .gitignore)
+
+const SUPABASE_URL = 'https://YOUR_PROJECT_REF.supabase.co';
+const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
