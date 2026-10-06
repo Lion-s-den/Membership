@@ -3,21 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Course Module - Student LMS</title>
-  
-  <!-- 1. Load Configuration First -->
-  <script src="config.js"></script>
+  <title>Course - Student LMS</title>
 
-  <!-- 2. Load Supabase Library -->
+  <script src="config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <!-- 3. Initialize Supabase Client Globally -->
   <script>
     let supabaseClient = null;
     if (typeof SUPABASE_URL !== 'undefined' && typeof SUPABASE_ANON_KEY !== 'undefined') {
       supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    } else {
-      console.error("Supabase configuration missing in config.js");
     }
   </script>
 
@@ -27,9 +21,8 @@
       background-color: #f4f6f8;
       margin: 0;
       padding: 0;
-      color: #333333;
+      color: #333;
     }
-
     header {
       background-color: #ffffff;
       padding: 15px 30px;
@@ -38,19 +31,14 @@
       align-items: center;
       box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
-    header h1 {
-      margin: 0;
-      font-size: 20px;
-    }
+    header h1 { margin: 0; font-size: 20px; }
     .back-btn {
       color: #3ecf8e;
       text-decoration: none;
       font-weight: bold;
       font-size: 14px;
     }
-    .back-btn:hover {
-      text-decoration: underline;
-    }
+    .back-btn:hover { text-decoration: underline; }
 
     .container {
       max-width: 800px;
@@ -62,496 +50,151 @@
       padding: 30px;
       border-radius: 8px;
       box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-      margin-bottom: 30px;
+      margin-bottom: 20px;
     }
-    .module-badge {
-      display: inline-block;
-      background-color: #e6f4ea;
-      color: #3ecf8e;
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 12px;
-      font-weight: bold;
-      margin-bottom: 10px;
-      text-transform: uppercase;
-    }
-    h2 {
-      margin-top: 0;
-      color: #333333;
-    }
-    h3 {
-      color: #2d3748;
-      margin-top: 28px;
-      margin-bottom: 10px;
-      border-bottom: 2px solid #e6f4ea;
-      padding-bottom: 6px;
-    }
-    .lesson-body {
-      line-height: 1.7;
-      color: #555555;
-      margin-top: 20px;
-    }
-    .lesson-body ul {
-      padding-left: 20px;
-    }
-    .lesson-body li {
-      margin-bottom: 6px;
-    }
-    .lesson-body code {
-      background: #f0f4f8;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-family: monospace;
-      font-size: 0.9em;
-    }
-    .lesson-body pre {
-      background: #1a202c;
-      color: #e2e8f0;
-      padding: 16px;
-      border-radius: 8px;
-      overflow-x: auto;
-      font-size: 14px;
-      line-height: 1.5;
-    }
-    .video-container {
-      position: relative;
-      padding-bottom: 56.25%;
-      height: 0;
-      overflow: hidden;
-      margin-top: 25px;
-      border-radius: 8px;
-      background-color: #000000;
-    }
-    .video-container iframe {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      border: 0;
+    h2 { margin-top: 0; }
+    .course-desc {
+      color: #555;
+      line-height: 1.6;
+      margin-bottom: 25px;
     }
 
-    /* Quiz Styles */
-    .quiz-section {
-      margin-top: 40px;
-      border-top: 2px solid #e2e8f0;
-      padding-top: 30px;
+    .chapter-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
     }
-    .quiz-section h3 {
-      color: #3ecf8e;
-      border-bottom: none;
-    }
-    .question-block {
+    .chapter-item {
       background: #f8fafc;
       border: 1px solid #e2e8f0;
       border-radius: 8px;
-      padding: 20px;
-      margin-bottom: 20px;
+      padding: 16px 20px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: border-color 0.2s;
     }
-    .question-block p {
-      font-weight: bold;
-      margin-top: 0;
-      color: #2d3748;
-    }
-    .options label {
-      display: block;
-      background: #ffffff;
-      border: 1px solid #cbd5e0;
-      border-radius: 6px;
-      padding: 12px 16px;
-      margin-bottom: 8px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .options label:hover {
+    .chapter-item:hover {
       border-color: #3ecf8e;
-      background: #f0fff4;
     }
-    .options input[type="radio"] {
-      margin-right: 10px;
-    }
-    .options label.correct {
-      background: #c6f6d5;
-      border-color: #38a169;
-    }
-    .options label.incorrect {
-      background: #fed7d7;
-      border-color: #e53e3e;
-    }
-    #submitQuiz {
-      background: #3ecf8e;
-      color: white;
-      border: none;
-      padding: 14px 28px;
-      font-size: 16px;
+    .chapter-item a {
+      text-decoration: none;
+      color: #2d3748;
       font-weight: bold;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-top: 10px;
+      flex-grow: 1;
     }
-    #submitQuiz:hover {
-      background: #34b27b;
+    .chapter-item a:hover { color: #3ecf8e; }
+    .chapter-meta {
+      font-size: 13px;
+      color: #718096;
+      margin-left: 15px;
+      white-space: nowrap;
     }
-    #submitQuiz:disabled {
-      background: #a0aec0;
-      cursor: not-allowed;
-    }
-    #quizResult {
-      margin-top: 25px;
-      padding: 20px;
-      border-radius: 8px;
-      font-size: 18px;
-      font-weight: bold;
+
+    .empty-state {
       text-align: center;
-      display: none;
+      color: #718096;
+      padding: 30px;
     }
-    #quizResult.good {
-      background: #c6f6d5;
-      color: #276749;
-    }
-    #quizResult.average {
-      background: #fefcbf;
-      color: #975a16;
-    }
-    #quizResult.poor {
-      background: #fed7d7;
-      color: #9b2c2c;
-    }
+    .loading { text-align: center; padding: 40px; color: #718096; }
   </style>
 </head>
 <body>
 
-  <!-- Header -->
   <header>
     <h1>Student Portal</h1>
     <a href="./dashboard.html" class="back-btn">← Back to Dashboard</a>
   </header>
 
-  <!-- Dynamic Content Area -->
   <div class="container">
-    <div class="content-card">
-      <span class="module-badge" id="moduleTag">Course Module</span>
-      <h2 id="courseTitle">Loading Lesson...</h2>
-      
-      <div id="courseContent" class="lesson-body">
-        <p>Fetching content...</p>
-      </div>
-
-      <!-- Optional Video Embed Area -->
-      <div class="video-container" id="videoBox" style="display: none;">
-        <iframe id="videoPlayer" src="" allowfullscreen></iframe>
-      </div>
-
-      <!-- Quiz will be injected here for js-basics -->
-      <div id="quizContainer"></div>
+    <div class="content-card" id="mainContent">
+      <p class="loading">Loading course...</p>
     </div>
   </div>
 
   <script>
-    // 1. Authentication Guard
     async function checkAuth() {
       if (!supabaseClient) {
-        console.error("Supabase client is not initialized.");
         window.location.href = './index.html';
+        return false;
+      }
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (!session) {
+        window.location.href = './index.html';
+        return false;
+      }
+      return true;
+    }
+
+    async function loadCourse() {
+      const ok = await checkAuth();
+      if (!ok) return;
+
+      const params = new URLSearchParams(window.location.search);
+      const courseId = params.get('id');
+
+      if (!courseId) {
+        document.getElementById('mainContent').innerHTML = '<h2>Course not found</h2><p>Missing course ID.</p>';
         return;
       }
 
-      const { data: { session }, error } = await supabaseClient.auth.getSession();
-      if (error || !session) {
-        window.location.href = './index.html';
-      }
-    }
-    checkAuth();
+      // Load course
+      const { data: course, error: courseError } = await supabaseClient
+        .from('courses')
+        .select('*')
+        .eq('id', courseId)
+        .single();
 
-    // 2. Course Content Object
-    const coursesData = {
-      'html-basics': {
-        title: 'Module 1: HTML & CSS Basics',
-        tag: 'Frontend',
-        content: '<p>Welcome to Module 1! In this module, you will learn how to build structure with standard HTML5 elements and style pages using CSS selectors.</p><p>Key Topics Covered:</p><ul><li>Document structure (<head>, <body>)</li><li>Flexbox and Responsive Layouts</li><li>Styling forms and card elements</li></ul>',
-        videoUrl: 'https://www.youtube.com/embed/mU6anWqZJcc'
-      },
-
-      'js-basics': {
-        title: 'Module 2: JavaScript Fundamentals',
-        tag: 'Programming',
-        content: `
-          <p>Welcome to <strong>Module 2: JavaScript Fundamentals</strong>! JavaScript is the language that makes websites interactive and dynamic.</p>
-
-          <h3>1. What is JavaScript?</h3>
-          <p>JavaScript is a high-level, interpreted scripting language that follows the ECMAScript specification. Key characteristics:</p>
-          <ul>
-            <li><strong>High-Level</strong> – You don’t manage memory manually (unlike C/C++).</li>
-            <li><strong>Interpreted</strong> – Runs directly in the browser without compilation.</li>
-            <li><strong>Multi-paradigm</strong> – Supports Object-Oriented and Functional programming.</li>
-            <li>Runs in browsers, Node.js, Electron apps, and mobile frameworks.</li>
-          </ul>
-
-          <h3>2. Variables: let, const & var</h3>
-          <p>Modern JavaScript uses <code>let</code> and <code>const</code>. Avoid <code>var</code> in new code.</p>
-          <ul>
-            <li><code>const</code> – Cannot be reassigned. Use for values that stay the same.</li>
-            <li><code>let</code> – Can be reassigned. Use when the value needs to change.</li>
-          </ul>
-          <pre>const name = "Rayan";
-// name = "Ali";  // TypeError: Assignment to constant variable
-
-let age = 20;
-age = 21;        // This is allowed</pre>
-
-          <h3>3. Data Types</h3>
-          <p>JavaScript has primitive types (String, Number, Boolean, null, undefined, Symbol, BigInt) and Objects.</p>
-
-          <h3>4. Objects & Arrays</h3>
-          <pre>const person = {
-  firstName: "John",
-  lastName: "Doe",
-  age: 30
-};
-
-// Destructuring
-const { firstName, age } = person;
-
-const todos = [
-  { id: 1, text: "Learn JavaScript", isCompleted: false },
-  { id: 2, text: "Build a project", isCompleted: true }
-];</pre>
-
-          <h3>5. Loops & Array Methods</h3>
-          <p>Common ways to loop:</p>
-          <ul>
-            <li><code>for</code> loop</li>
-            <li><code>while</code> loop</li>
-            <li><code>for...of</code> (cleanest for arrays)</li>
-          </ul>
-          <p>High-order array methods (very important):</p>
-          <ul>
-            <li><code>forEach</code> – loop through items</li>
-            <li><code>map</code> – transform and return new array</li>
-            <li><code>filter</code> – return only items that pass a test</li>
-          </ul>
-          <pre>const completed = todos
-  .filter(todo => todo.isCompleted)
-  .map(todo => todo.text);</pre>
-
-          <h3>6. Conditionals</h3>
-          <p>Always prefer <code>===</code> (strict equality) over <code>==</code>.</p>
-          <pre>if (age === 18) {
-  console.log("Just became adult");
-} else if (age > 18) {
-  console.log("Adult");
-} else {
-  console.log("Minor");
-}
-
-// Ternary operator
-const status = age >= 18 ? "Adult" : "Minor";</pre>
-
-          <h3>7. Functions</h3>
-          <pre>// Regular function
-function greet(name) {
-  return `Hello, ${name}!`;
-}
-
-// Arrow function (modern)
-const greetArrow = (name) => `Hello, ${name}!`;</pre>
-
-          <h3>8. DOM Manipulation & Events</h3>
-          <p>The Document Object Model lets you change the page with JavaScript.</p>
-          <pre>const button = document.querySelector("#myBtn");
-button.addEventListener("click", function() {
-  alert("Button clicked!");
-});</pre>
-
-          <p style="margin-top:30px;"><strong>Now watch the video below and then test your knowledge with the quiz!</strong></p>
-        `,
-        videoUrl: 'https://www.youtube.com/embed/hdI2bqOjy3c',
-        hasQuiz: true
-      },
-
-      'supabase-basics': {
-        title: 'Module 3: Supabase & Databases',
-        tag: 'Backend',
-        content: '<p>Welcome to Module 3! Supabase provides user authentication, PostgreSQL database management, and Row Level Security.</p><p>Key Topics Covered:</p><ul><li>Setting up Supabase auth handlers</li><li>Querying data with JavaScript</li><li>Protecting sensitive rows with RLS</li></ul>',
-        videoUrl: ''
-      }
-    };
-
-    // Quiz Data for Module 2
-    const quizData = [
-      {
-        question: "1. A developer attempts to reassign a variable initialized with `const` to a new primitive value. What happens?",
-        options: [
-          "A ReferenceError is thrown because const variables are not visible outside their block.",
-          "A TypeError is thrown indicating assignment to a constant variable.",
-          "The value changes silently without throwing an error.",
-          "A SyntaxError is thrown indicating duplicate variable declaration."
-        ],
-        correct: 1
-      },
-      {
-        question: "2. Which keyword should you prefer in modern JavaScript when the value of a variable needs to change later?",
-        options: [
-          "var",
-          "const",
-          "let",
-          "static"
-        ],
-        correct: 2
-      },
-      {
-        question: "3. What does the array method `.map()` do?",
-        options: [
-          "It filters items that pass a test and returns a new array",
-          "It loops through items but does not return a new array",
-          "It transforms each item and returns a new array of the same length",
-          "It sorts the array in place"
-        ],
-        correct: 2
-      },
-      {
-        question: "4. Which equality operator is recommended in JavaScript because it checks both value and type?",
-        options: [
-          "==",
-          "=",
-          "===",
-          "!=="
-        ],
-        correct: 2
-      },
-      {
-        question: "5. What is the cleanest way (ES6) to loop through an array without using an index?",
-        options: [
-          "for (let i = 0; i < arr.length; i++)",
-          "while (i < arr.length)",
-          "for (let item of arr)",
-          "arr.loop(item => ...)"
-        ],
-        correct: 2
-      },
-      {
-        question: "6. In the browser, what does `document.querySelector('#myBtn')` do?",
-        options: [
-          "Creates a new button with id myBtn",
-          "Selects the first element that has id=\"myBtn\"",
-          "Removes the element with id myBtn",
-          "Adds a click event to every button"
-        ],
-        correct: 1
-      }
-    ];
-
-    // 3. Read the URL Parameter
-    const urlParams = new URLSearchParams(window.location.search);
-    const courseId = urlParams.get('id');
-
-    // 4. Load the corresponding lesson content
-    if (courseId && coursesData[courseId]) {
-      const course = coursesData[courseId];
-      
-      document.getElementById('courseTitle').innerText = course.title;
-      document.getElementById('moduleTag').innerText = course.tag;
-      document.getElementById('courseContent').innerHTML = course.content;
-
-      if (course.videoUrl) {
-        document.getElementById('videoPlayer').src = course.videoUrl;
-        document.getElementById('videoBox').style.display = 'block';
+      if (courseError || !course) {
+        document.getElementById('mainContent').innerHTML = '<h2>Course not found</h2><p>This course does not exist.</p>';
+        return;
       }
 
-      // Render Quiz if this module has one
-      if (course.hasQuiz) {
-        renderQuiz();
-      }
-    } else {
-      document.getElementById('courseTitle').innerText = 'Course Not Found';
-      document.getElementById('courseContent').innerHTML = '<p>The selected module does not exist. Please return to the dashboard.</p>';
-    }
+      // Load chapters
+      const { data: chapters, error: chaptersError } = await supabaseClient
+        .from('chapters')
+        .select('*')
+        .eq('course_id', courseId)
+        .order('order_index');
 
-    // 5. Render Interactive Quiz
-    function renderQuiz() {
-      const container = document.getElementById('quizContainer');
       let html = `
-        <div class="quiz-section">
-          <h3>📝 Module 2 Quiz – Test Your Knowledge</h3>
-          <p>Answer all 6 questions and click Submit to see your score.</p>
-          <form id="quizForm">
+        <h2>${escapeHtml(course.title)}</h2>
+        <p class="course-desc">${escapeHtml(course.description || '')}</p>
+        <h3 style="margin-top:30px;border-bottom:2px solid #e6f4ea;padding-bottom:8px;">Chapters</h3>
       `;
 
-      quizData.forEach((q, index) => {
-        html += `
-          <div class="question-block" id="q${index}">
-            <p>${q.question}</p>
-            <div class="options">
-        `;
-        q.options.forEach((opt, optIndex) => {
+      if (chaptersError) {
+        html += `<p class="empty-state">Error loading chapters: ${chaptersError.message}</p>`;
+      } else if (!chapters || chapters.length === 0) {
+        html += `<p class="empty-state">No chapters in this course yet.</p>`;
+      } else {
+        html += '<ul class="chapter-list">';
+        chapters.forEach((ch, i) => {
+          const hasVideo = ch.youtube_url ? '🎬' : '';
+          const quizCount = Array.isArray(ch.quiz) ? ch.quiz.length : 0;
+          const quizLabel = quizCount > 0 ? `📝 ${quizCount} Qs` : '';
           html += `
-            <label>
-              <input type="radio" name="question${index}" value="${optIndex}" required>
-              ${opt}
-            </label>
+            <li class="chapter-item">
+              <a href="./chapter.html?id=${ch.id}">${i + 1}. ${escapeHtml(ch.title)}</a>
+              <span class="chapter-meta">${hasVideo} ${quizLabel}</span>
+            </li>
           `;
         });
-        html += `</div></div>`;
-      });
-
-      html += `
-          <button type="submit" id="submitQuiz">Submit Quiz</button>
-          </form>
-          <div id="quizResult"></div>
-        </div>
-      `;
-
-      container.innerHTML = html;
-
-      document.getElementById('quizForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        checkQuiz();
-      });
-    }
-
-    function checkQuiz() {
-      let score = 0;
-      const total = quizData.length;
-
-      quizData.forEach((q, index) => {
-        const selected = document.querySelector(`input[name="question${index}"]:checked`);
-        const labels = document.querySelectorAll(`#q${index} label`);
-
-        // Disable all inputs
-        document.querySelectorAll(`input[name="question${index}"]`).forEach(input => input.disabled = true);
-
-        if (selected) {
-          const answer = parseInt(selected.value);
-          if (answer === q.correct) {
-            score++;
-            labels[answer].classList.add('correct');
-          } else {
-            labels[answer].classList.add('incorrect');
-            labels[q.correct].classList.add('correct');
-          }
-        } else {
-          labels[q.correct].classList.add('correct');
-        }
-      });
-
-      const resultDiv = document.getElementById('quizResult');
-      const percentage = Math.round((score / total) * 100);
-      resultDiv.style.display = 'block';
-
-      if (percentage >= 80) {
-        resultDiv.className = 'good';
-        resultDiv.innerHTML = `🎉 Excellent! You scored ${score}/${total} (${percentage}%)`;
-      } else if (percentage >= 50) {
-        resultDiv.className = 'average';
-        resultDiv.innerHTML = `👍 Good effort! You scored ${score}/${total} (${percentage}%). Review the lesson and try again.`;
-      } else {
-        resultDiv.className = 'poor';
-        resultDiv.innerHTML = `📚 You scored ${score}/${total} (${percentage}%). Please review the module content carefully.`;
+        html += '</ul>';
       }
 
-      document.getElementById('submitQuiz').disabled = true;
+      document.getElementById('mainContent').innerHTML = html;
     }
-  </script>
 
+    function escapeHtml(text) {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    loadCourse();
+  </script>
 </body>
 </html>
