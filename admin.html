@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Panel - LMS</title>
+
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script>
+    let supabaseClient = null;
+    if (typeof SUPABASE_URL !== 'undefined' && typeof SUPABASE_ANON_KEY !== 'undefined') {
+      supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+  </script>
+
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      margin: 0;
+      color: #333;
+    }
+    header {
+      background: #1a202c;
+      color: white;
+      padding: 15px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 { margin: 0; font-size: 20px; }
+    .header-right { display: flex; gap: 15px; align-items: center; }
+    .logout-btn, .back-btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+      text-decoration: none;
+      font-size: 14px;
+    }
+    .logout-btn { background: #e53e3e; color: white; }
+    .back-btn { background: #3ecf8e; color: white; }
+
+    .container { max-width: 1100px; margin: 30px auto; padding: 0 20px; }
+
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 25px;
+    }
+    .tab-btn {
+      padding: 10px 20px;
+      border: none;
+      background: #e2e8f0;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .tab-btn.active { background: #3ecf8e; color: white; }
+
+    .card {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      padding: 25px;
+      margin-bottom: 25px;
+    }
+    .card h2 { margin-top: 0; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    th { background: #f7fafc; }
+
+    .btn {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 13px;
+      margin-right: 6px;
+    }
+    .btn-primary { background: #3ecf8e; color: white; }
+    .btn-edit { background: #3182ce; color: white; }
+    .btn-danger { background: #e53e3e; color: white; }
+    .btn-secondary { background: #718096; color: white; }
+
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
+    .form-group input, .form-group textarea, .form-group select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #cbd5e0;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    .form-group textarea { min-height: 100px; resize: vertical; }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .modal.open { display: flex; }
+    .modal-content {
+      background: white;
+      border-radius: 8px;
+      padding: 25px;
+      width: 100%;
+      max-width: 600px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal-actions { margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end; }
+
+    .quiz-question {
+      background: #f7fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 15px;
+      margin-bottom: 12px;
+    }
+    .quiz-question input[type="text"] { margin-bottom: 8px; }
+    .option-row { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; }
+    .option-row input[type="text"] { flex: 1; }
+
+    .hidden { display: none !important; }
+    .empty-state { text-align: center; color: #718096; padding: 40px; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>🛠 Admin Panel</h1>
+    <div class="header-right">
+      <span id="adminEmail">Loading...</span>
+      <a href="./dashboard.html" class="back-btn">Student View</a>
+      <button class="logout-btn" id="logoutBtn">Log Out</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="courses">Courses</button>
+      <button class="tab-btn" data-tab="chapters">Chapters</button>
+    </div>
+
+    <!-- COURSES TAB -->
+    <div id="coursesTab">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <h2>All Courses</h2>
+          <button class="btn btn-primary" id="addCourseBtn">+ Add Course</button>
+        </div>
+        <div id="coursesList">
+          <p class="empty-state">Loading courses...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHAPTERS TAB -->
+    <div id="chaptersTab" class="hidden">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+          <h2>Chapters</h2>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <select id="courseFilter" style="padding:8px;border-radius:4px;border:1px solid #cbd5e0;">
+              <option value="">Select a course first</option>
+            </select>
+            <button class="btn btn-primary" id="addChapterBtn" disabled>+ Add Chapter</button>
+          </div>
+        </div>
+        <div id="chaptersList">
+          <p class="empty-state">Select a course to see its chapters</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Course Modal -->
+  <div class="modal" id="courseModal">
+    <div class="modal-content">
+      <h2 id="courseModalTitle">Add Course</h2>
+      <form id="courseForm">
+        <input type="hidden" id="courseId">
+        <div class="form-group">
+          <label>Title *</label>
+          <input type="text" id="courseTitle" required>
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea id="courseDescription"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Order (number)</label>
+          <input type="number" id="courseOrder" value="0">
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="cancelCourseBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Course</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Chapter Modal -->
+  <div class="modal" id="chapterModal">
+    <div class="modal-content">
+      <h2 id="chapterModalTitle">Add Chapter</h2>
+      <form id="chapterForm">
+        <input type="hidden" id="chapterId">
+        <div class="form-group">
+          <label>Title *</label>
+          <input type="text" id="chapterTitle" required>
+        </div>
+        <div class="form-group">
+          <label>Description (you can use simple HTML)</label>
+          <textarea id="chapterDescription"></textarea>
+        </div>
+        <div class="form-group">
+          <label>YouTube URL or Video ID</label>
+          <input type="text" id="chapterYoutube" placeholder="https://www.youtube.com/watch?v=xxxxx or just xxxxx">
+        </div>
+        <div class="form-group">
+          <label>Order (number)</label>
+          <input type="number" id="chapterOrder" value="0">
+        </div>
+
+        <div class="form-group">
+          <label>Quiz Questions</label>
+          <div id="quizBuilder"></div>
+          <button type="button" class="btn btn-secondary" id="addQuestionBtn" style="margin-top:10px;">+ Add Question</button>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="cancelChapterBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Chapter</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    let currentUser = null;
+    let allCourses = [];
+    let selectedCourseId = null;
+
+    // ========== AUTH ==========
+    async function checkAuth() {
+      if (!supabaseClient) {
+        alert('Supabase not configured');
+        window.location.href = './index.html';
+        return;
+      }
+
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (!session) {
+        window.location.href = './index.html';
+        return;
+      }
+
+      currentUser = session.user;
+      const role = currentUser.user_metadata?.role;
+
+      if (role !== 'admin') {
+        alert('Access denied. Admins only.');
+        window.location.href = './dashboard.html';
+        return;
+      }
+
+      document.getElementById('adminEmail').textContent = currentUser.email;
+      loadCourses();
+    }
+
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      await supabaseClient.auth.signOut();
+      window.location.href = './index.html';
+    });
+
+    // ========== TABS ==========
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        document.getElementById('coursesTab').classList.toggle('hidden', btn.dataset.tab !== 'courses');
+        document.getElementById('chaptersTab').classList.toggle('hidden', btn.dataset.tab !== 'chapters');
+      });
+    });
+
+    // ========== COURSES ==========
+    async function loadCourses() {
+      const { data, error } = await supabaseClient
+        .from('courses')
+        .select('*')
+        .order('order_index');
+
+      if (error) {
+        document.getElementById('coursesList').innerHTML = `<p class="empty-state">Error: ${error.message}</p>`;
+        return;
+      }
+
+      allCourses = data || [];
+      renderCourses();
+      populateCourseFilter();
+    }
+
+    function renderCourses() {
+      const container = document.getElementById('coursesList');
+      if (allCourses.length === 0) {
+        container.innerHTML = '<p class="empty-state">No courses yet. Click "Add Course" to create one.</p>';
+        return;
+      }
+
+      let html = `<table>
+        <thead><tr><th>Order</th><th>Title</th><th>Description</th><th>Actions</th></tr></thead>
+        <tbody>`;
+
+      allCourses.forEach(c => {
+        html += `<tr>
+          <td>${c.order_index}</td>
+          <td><strong>${escapeHtml(c.title)}</strong></td>
+          <td>${escapeHtml(c.description || '').substring(0, 80)}${(c.description||'').length > 80 ? '...' : ''}</td>
+          <td>
+            <button class="btn btn-edit" onclick="editCourse('${c.id}')">Edit</button>
+            <button class="btn btn-danger" onclick="deleteCourse('${c.id}')">Delete</button>
+          </td>
+        </tr>`;
+      });
+
+      html += '</tbody></table>';
+      container.innerHTML = html;
+    }
+
+    function populateCourseFilter() {
+      const select = document.getElementById('courseFilter');
+      select.innerHTML = '<option value="">Select a course</option>';
+      allCourses.forEach(c => {
+        select.innerHTML += `<option value="${c.id}">${escapeHtml(c.title)}</option>`;
+      });
+    }
+
+    document.getElementById('addCourseBtn').addEventListener('click', () => {
+      document.getElementById('courseModalTitle').textContent = 'Add Course';
+      document.getElementById('courseForm').reset();
+      document.getElementById('courseId').value = '';
+      document.getElementById('courseModal').classList.add('open');
+    });
+
+    document.getElementById('cancelCourseBtn').addEventListener('click', () => {
+      document.getElementById('courseModal').classList.remove('open');
+    });
+
+    window.editCourse = function(id) {
+      const course = allCourses.find(c => c.id === id);
+      if (!course) return;
+      document.getElementById('courseModalTitle').textContent = 'Edit Course';
+      document.getElementById('courseId').value = course.id;
+      document.getElementById('courseTitle').value = course.title;
+      document.getElementById('courseDescription').value = course.description || '';
+      document.getElementById('courseOrder').value = course.order_index || 0;
+      document.getElementById('courseModal').classList.add('open');
+    };
+
+    window.deleteCourse = async function(id) {
+      if (!confirm('Delete this course and ALL its chapters?')) return;
+      const { error } = await supabaseClient.from('courses').delete().eq('id', id);
+      if (error) alert(error.message);
+      else loadCourses();
+    };
+
+    document.getElementById('courseForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('courseId').value;
+      const payload = {
+        title: document.getElementById('courseTitle').value.trim(),
+        description: document.getElementById('courseDescription').value.trim(),
+        order_index: parseInt(document.getElementById('courseOrder').value) || 0
+      };
+
+      let error;
+      if (id) {
+        ({ error } = await supabaseClient.from('courses').update(payload).eq('id', id));
+      } else {
+        ({ error } = await supabaseClient.from('courses').insert(payload));
+      }
+
+      if (error) alert(error.message);
+      else {
+        document.getElementById('courseModal').classList.remove('open');
+        loadCourses();
+      }
+    });
+
+    // ========== CHAPTERS ==========
+    document.getElementById('courseFilter').addEventListener('change', (e) => {
+      selectedCourseId = e.target.value || null;
+      document.getElementById('addChapterBtn').disabled = !selectedCourseId;
+      if (selectedCourseId) loadChapters();
+      else document.getElementById('chaptersList').innerHTML = '<p class="empty-state">Select a course to see its chapters</p>';
+    });
+
+    async function loadChapters() {
+      const { data, error } = await supabaseClient
+        .from('chapters')
+        .select('*')
+        .eq('course_id', selectedCourseId)
+        .order('order_index');
+
+      if (error) {
+        document.getElementById('chaptersList').innerHTML = `<p class="empty-state">Error: ${error.message}</p>`;
+        return;
+      }
+
+      renderChapters(data || []);
+    }
+
+    function renderChapters(chapters) {
+      const container = document.getElementById('chaptersList');
+      if (chapters.length === 0) {
+        container.innerHTML = '<p class="empty-state">No chapters yet for this course.</p>';
+        return;
+      }
+
+      let html = `<table>
+        <thead><tr><th>Order</th><th>Title</th><th>YouTube</th><th>Quiz Qs</th><th>Actions</th></tr></thead>
+        <tbody>`;
+
+      chapters.forEach(ch => {
+        const quizCount = Array.isArray(ch.quiz) ? ch.quiz.length : 0;
+        html += `<tr>
+          <td>${ch.order_index}</td>
+          <td><strong>${escapeHtml(ch.title)}</strong></td>
+          <td>${ch.youtube_url ? '✅' : '—'}</td>
+          <td>${quizCount}</td>
+          <td>
+            <button class="btn btn-edit" onclick='editChapter(${JSON.stringify(ch).replace(/'/g, "&#39;")})'>Edit</button>
+            <button class="btn btn-danger" onclick="deleteChapter('${ch.id}')">Delete</button>
+          </td>
+        </tr>`;
+      });
+
+      html += '</tbody></table>';
+      container.innerHTML = html;
+    }
+
+    document.getElementById('addChapterBtn').addEventListener('click', () => {
+      document.getElementById('chapterModalTitle').textContent = 'Add Chapter';
+      document.getElementById('chapterForm').reset();
+      document.getElementById('chapterId').value = '';
+      document.getElementById('quizBuilder').innerHTML = '';
+      addQuestionBlock();
+      document.getElementById('chapterModal').classList.add('open');
+    });
+
+    document.getElementById('cancelChapterBtn').addEventListener('click', () => {
+      document.getElementById('chapterModal').classList.remove('open');
+    });
+
+    window.editChapter = function(ch) {
+      document.getElementById('chapterModalTitle').textContent = 'Edit Chapter';
+      document.getElementById('chapterId').value = ch.id;
+      document.getElementById('chapterTitle').value = ch.title;
+      document.getElementById('chapterDescription').value = ch.description || '';
+      document.getElementById('chapterYoutube').value = ch.youtube_url || '';
+      document.getElementById('chapterOrder').value = ch.order_index || 0;
+
+      const builder = document.getElementById('quizBuilder');
+      builder.innerHTML = '';
+      const quiz = Array.isArray(ch.quiz) ? ch.quiz : [];
+      if (quiz.length === 0) addQuestionBlock();
+      else quiz.forEach(q => addQuestionBlock(q));
+
+      document.getElementById('chapterModal').classList.add('open');
+    };
+
+    window.deleteChapter = async function(id) {
+      if (!confirm('Delete this chapter?')) return;
+      const { error } = await supabaseClient.from('chapters').delete().eq('id', id);
+      if (error) alert(error.message);
+      else loadChapters();
+    };
+
+    // ========== QUIZ BUILDER ==========
+    function addQuestionBlock(existing = null) {
+      const div = document.createElement('div');
+      div.className = 'quiz-question';
+
+      const questionVal = existing ? existing.question : '';
+      const options = existing && Array.isArray(existing.options) ? existing.options : ['', '', '', ''];
+      const correct = existing && typeof existing.correct === 'number' ? existing.correct : 0;
+
+      div.innerHTML = `
+        <input type="text" class="q-text" placeholder="Question text" value="${escapeHtml(questionVal)}">
+        <div class="options-list">
+          ${options.map((opt, i) => `
+            <div class="option-row">
+              <input type="radio" name="correct-${Date.now()}-${Math.random()}" value="${i}" ${i === correct ? 'checked' : ''}>
+              <input type="text" class="opt-text" placeholder="Option ${i+1}" value="${escapeHtml(opt)}">
+            </div>
+          `).join('')}
+        </div>
+        <button type="button" class="btn btn-danger" style="margin-top:8px;" onclick="this.parentElement.remove()">Remove Question</button>
+      `;
+
+      document.getElementById('quizBuilder').appendChild(div);
+    }
+
+    document.getElementById('addQuestionBtn').addEventListener('click', () => addQuestionBlock());
+
+    function collectQuiz() {
+      const questions = [];
+      document.querySelectorAll('.quiz-question').forEach(block => {
+        const question = block.querySelector('.q-text').value.trim();
+        if (!question) return;
+
+        const options = [];
+        block.querySelectorAll('.opt-text').forEach(inp => options.push(inp.value.trim()));
+
+        const checked = block.querySelector('input[type="radio"]:checked');
+        const correct = checked ? parseInt(checked.value) : 0;
+
+        questions.push({ question, options, correct });
+      });
+      return questions;
+    }
+
+    // ========== SAVE CHAPTER ==========
+    document.getElementById('chapterForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!selectedCourseId) {
+        alert('Please select a course first');
+        return;
+      }
+
+      const id = document.getElementById('chapterId').value;
+      let youtube = document.getElementById('chapterYoutube').value.trim();
+
+      // Normalize YouTube URL to embed format
+      if (youtube) {
+        const match = youtube.match(/(?:youtu\.be\/|v=|embed\/)([a-zA-Z0-9_-]{11})/);
+        if (match) youtube = 'https://www.youtube.com/embed/' + match[1];
+        else if (/^[a-zA-Z0-9_-]{11}$/.test(youtube)) youtube = 'https://www.youtube.com/embed/' + youtube;
+      }
+
+      const payload = {
+        course_id: selectedCourseId,
+        title: document.getElementById('chapterTitle').value.trim(),
+        description: document.getElementById('chapterDescription').value.trim(),
+        youtube_url: youtube || null,
+        order_index: parseInt(document.getElementById('chapterOrder').value) || 0,
+        quiz: collectQuiz()
+      };
+
+      let error;
+      if (id) {
+        ({ error } = await supabaseClient.from('chapters').update(payload).eq('id', id));
+      } else {
+        ({ error } = await supabaseClient.from('chapters').insert(payload));
+      }
+
+      if (error) alert(error.message);
+      else {
+        document.getElementById('chapterModal').classList.remove('open');
+        loadChapters();
+      }
+    });
+
+    // ========== HELPERS ==========
+    function escapeHtml(text) {
+      if (!text) return '';
+      return text
+        .replace(/&/g, '&')
+        .replace(/</g, '<')
+        .replace(/>/g, '>')
+        .replace(/"/g, '"');
+    }
+
+    // Start
+    checkAuth();
+  </script>
+</body>
+</html>
