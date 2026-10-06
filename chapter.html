@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chapter - Student LMS</title>
+
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script>
+    let supabaseClient = null;
+    if (typeof SUPABASE_URL !== 'undefined' && typeof SUPABASE_ANON_KEY !== 'undefined') {
+      supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f6f8;
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
+    header {
+      background: #fff;
+      padding: 15px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    header h1 { margin: 0; font-size: 20px; }
+    .back-btn {
+      color: #3ecf8e;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 14px;
+    }
+    .container {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+    .content-card {
+      background: #fff;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+    .module-badge {
+      display: inline-block;
+      background: #e6f4ea;
+      color: #3ecf8e;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+    h2 { margin-top: 0; }
+    .lesson-body {
+      line-height: 1.7;
+      color: #555;
+      margin-top: 20px;
+    }
+    .video-container {
+      position: relative;
+      padding-bottom: 56.25%;
+      height: 0;
+      overflow: hidden;
+      margin: 25px 0;
+      border-radius: 8px;
+      background: #000;
+    }
+    .video-container iframe {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      border: 0;
+    }
+
+    /* Quiz */
+    .quiz-section {
+      margin-top: 40px;
+      border-top: 2px solid #e2e8f0;
+      padding-top: 30px;
+    }
+    .quiz-section h3 {
+      color: #3ecf8e;
+      margin-top: 0;
+    }
+    .question-block {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .question-block p {
+      font-weight: bold;
+      margin-top: 0;
+      color: #2d3748;
+    }
+    .options label {
+      display: block;
+      background: #fff;
+      border: 1px solid #cbd5e0;
+      border-radius: 6px;
+      padding: 12px 16px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .options label:hover {
+      border-color: #3ecf8e;
+      background: #f0fff4;
+    }
+    .options input[type="radio"] { margin-right: 10px; }
+    .options label.correct {
+      background: #c6f6d5;
+      border-color: #38a169;
+    }
+    .options label.incorrect {
+      background: #fed7d7;
+      border-color: #e53e3e;
+    }
+    #submitQuiz {
+      background: #3ecf8e;
+      color: white;
+      border: none;
+      padding: 14px 28px;
+      font-size: 16px;
+      font-weight: bold;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    #submitQuiz:hover { background: #34b27b; }
+    #submitQuiz:disabled {
+      background: #a0aec0;
+      cursor: not-allowed;
+    }
+    #quizResult {
+      margin-top: 25px;
+      padding: 20px;
+      border-radius: 8px;
+      font-size: 18px;
+      font-weight: bold;
+      text-align: center;
+      display: none;
+    }
+    #quizResult.good { background: #c6f6d5; color: #276749; }
+    #quizResult.average { background: #fefcbf; color: #975a16; }
+    #quizResult.poor { background: #fed7d7; color: #9b2c2c; }
+
+    .loading { text-align: center; padding: 60px; color: #718096; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Student Portal</h1>
+    <a href="./dashboard.html" class="back-btn" id="backLink">← Back to Dashboard</a>
+  </header>
+
+  <div class="container">
+    <div class="content-card" id="mainContent">
+      <p class="loading">Loading chapter...</p>
+    </div>
+  </div>
+
+  <script>
+    async function checkAuth() {
+      if (!supabaseClient) {
+        window.location.href = './index.html';
+        return false;
+      }
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (!session) {
+        window.location.href = './index.html';
+        return false;
+      }
+      return true;
+    }
+
+    function getEmbedUrl(url) {
+      if (!url) return null;
+      const match = url.match(/(?:youtu\.be\/|v=|embed\/)([a-zA-Z0-9_-]{11})/);
+      if (match) return 'https://www.youtube.com/embed/' + match[1];
+      if (/^[a-zA-Z0-9_-]{11}$/.test(url)) return 'https://www.youtube.com/embed/' + url;
+      return url; // already embed or other
+    }
+
+    async function loadChapter() {
+      const ok = await checkAuth();
+      if (!ok) return;
+
+      const params = new URLSearchParams(window.location.search);
+      const chapterId = params.get('id');
+
+      if (!chapterId) {
+        document.getElementById('mainContent').innerHTML = '<h2>Chapter not found</h2><p>Missing chapter ID.</p>';
+        return;
+      }
+
+      const { data: chapter, error } = await supabaseClient
+        .from('chapters')
+        .select('*, courses(title)')
+        .eq('id', chapterId)
+        .single();
+
+      if (error || !chapter) {
+        document.getElementById('mainContent').innerHTML = '<h2>Chapter not found</h2><p>This chapter does not exist or was deleted.</p>';
+        return;
+      }
+
+      const courseTitle = chapter.courses?.title || 'Course';
+      document.getElementById('backLink').href = `./course.html?id=${chapter.course_id}`;
+
+      let html = `
+        <span class="module-badge">${escapeHtml(courseTitle)}</span>
+        <h2>${escapeHtml(chapter.title)}</h2>
+      `;
+
+      // Video
+      const embed = getEmbedUrl(chapter.youtube_url);
+      if (embed) {
+        html += `
+          <div class="video-container">
+            <iframe src="${embed}" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+          </div>
+        `;
+      }
+
+      // Description
+      if (chapter.description) {
+        html += `<div class="lesson-body">${chapter.description}</div>`;
+      }
+
+      // Quiz
+      const quiz = Array.isArray(chapter.quiz) ? chapter.quiz : [];
+      if (quiz.length > 0) {
+        html += `
+          <div class="quiz-section">
+            <h3>📝 Quiz – Test Your Knowledge</h3>
+            <p>Answer all questions and click Submit to see your score.</p>
+            <form id="quizForm">
+        `;
+
+        quiz.forEach((q, index) => {
+          html += `
+            <div class="question-block" id="q${index}">
+              <p>${index + 1}. ${escapeHtml(q.question)}</p>
+              <div class="options">
+          `;
+          (q.options || []).forEach((opt, optIndex) => {
+            html += `
+              <label>
+                <input type="radio" name="question${index}" value="${optIndex}" required>
+                ${escapeHtml(opt)}
+              </label>
+            `;
+          });
+          html += `</div></div>`;
+        });
+
+        html += `
+              <button type="submit" id="submitQuiz">Submit Quiz</button>
+            </form>
+            <div id="quizResult"></div>
+          </div>
+        `;
+      }
+
+      document.getElementById('mainContent').innerHTML = html;
+
+      // Attach quiz handler
+      if (quiz.length > 0) {
+        document.getElementById('quizForm').addEventListener('submit', function(e) {
+          e.preventDefault();
+          checkQuiz(quiz);
+        });
+      }
+    }
+
+    function checkQuiz(quizData) {
+      let score = 0;
+      const total = quizData.length;
+
+      quizData.forEach((q, index) => {
+        const selected = document.querySelector(`input[name="question${index}"]:checked`);
+        const labels = document.querySelectorAll(`#q${index} label`);
+
+        document.querySelectorAll(`input[name="question${index}"]`).forEach(input => input.disabled = true);
+
+        if (selected) {
+          const answer = parseInt(selected.value);
+          if (answer === q.correct) {
+            score++;
+            labels[answer].classList.add('correct');
+          } else {
+            labels[answer].classList.add('incorrect');
+            if (labels[q.correct]) labels[q.correct].classList.add('correct');
+          }
+        } else {
+          if (labels[q.correct]) labels[q.correct].classList.add('correct');
+        }
+      });
+
+      const resultDiv = document.getElementById('quizResult');
+      const percentage = Math.round((score / total) * 100);
+      resultDiv.style.display = 'block';
+
+      if (percentage >= 80) {
+        resultDiv.className = 'good';
+        resultDiv.innerHTML = `🎉 Excellent! You scored ${score}/${total} (${percentage}%)`;
+      } else if (percentage >= 50) {
+        resultDiv.className = 'average';
+        resultDiv.innerHTML = `👍 Good effort! You scored ${score}/${total} (${percentage}%). Review the lesson and try again.`;
+      } else {
+        resultDiv.className = 'poor';
+        resultDiv.innerHTML = `📚 You scored ${score}/${total} (${percentage}%). Please review the chapter carefully.`;
+      }
+
+      document.getElementById('submitQuiz').disabled = true;
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    loadChapter();
+  </script>
+</body>
+</html>
