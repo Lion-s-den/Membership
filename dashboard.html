@@ -155,8 +155,8 @@
 
       document.getElementById('userEmail').innerText = session.user.email;
 
-      // Show admin link if user is admin
-      if (session.user.user_metadata?.role === 'admin') {
+      // Admin role lives in app_metadata (set only via Supabase dashboard / service role)
+      if (session.user.app_metadata?.role === 'admin') {
         document.getElementById('adminLink').style.display = 'inline-block';
       }
 
