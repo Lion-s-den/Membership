@@ -277,7 +277,8 @@
       }
 
       currentUser = session.user;
-      const role = currentUser.user_metadata?.role;
+      // Admin role must be in app_metadata (set only via Supabase dashboard)
+      const role = currentUser.app_metadata?.role;
 
       if (role !== 'admin') {
         alert('Access denied. Admins only.');
