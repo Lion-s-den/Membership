@@ -1,15 +1,17 @@
-# Environment & secrets
+# Local environment & secret files
+config.js
 .env
+.env.local
 .env.*
+*.env
 *.secret
 
-# Local configuration (copy from config.example.js)
-config.js
-
-# OS & editor files
+# Operating System files
 .DS_Store
 Thumbs.db
+
+# Editor directories
+.vscode/
+.idea/
 *.swp
 *.swo
-.idea/
-.vscode/
